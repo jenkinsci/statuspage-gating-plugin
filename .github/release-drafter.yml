@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: statuspage-gating-$NEXT_MINOR_VERSION

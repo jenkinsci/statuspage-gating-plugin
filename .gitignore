@@ -1,0 +1,14 @@
+work
+/target
+/bin
+.settings
+.classpath
+.metadata
+.project
+release.properties
+.idea
+*.iml
+*.swp
+**/dependency-reduced-pom.xml
+**/target
+.DS_Store
