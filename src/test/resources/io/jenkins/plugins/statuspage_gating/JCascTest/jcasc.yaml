@@ -1,0 +1,10 @@
+unclassified:
+  statuspageGating:
+    sources:
+      - label: "upstream"
+        apiKey: "foobar" # Encrypt this in production setting
+        pages: [ "foo", "bar" ]
+      - label: "proxy"
+        url: "https://acme.com"
+        pages:
+          - proxypage

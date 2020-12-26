@@ -1,0 +1,30 @@
+[
+  {
+    "id": "wfwsc3371234",
+    "page_id": "d78dc5bb023f",
+    "name": "Foo",
+    "description": null,
+    "components": [
+      "aaaaaaaaaaaa",
+      "bbbbbbbbbbbb"
+    ],
+    "position": 1,
+    "created_at": "2020-09-23T18:47:46Z",
+    "updated_at": "2020-09-23T18:47:46Z"
+  },
+  {
+    "id": "wfwsc3371235",
+    "page_id": "d78dc5bb023f",
+    "name": "Bar",
+    "description": null,
+    "components": [
+      "cccccccccccc",
+      "dddddddddddd",
+      "eeeeeeeeeeee",
+      "ffffffffffff"
+    ],
+    "position": 1,
+    "created_at": "2020-09-23T18:47:46Z",
+    "updated_at": "2020-09-23T18:47:46Z"
+  }
+]
