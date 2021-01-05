@@ -21,16 +21,23 @@
  */
 package io.jenkins.plugins.statuspage_gating;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
+import com.gargoylesoftware.htmlunit.WebRequest;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
@@ -39,7 +46,7 @@ public class JCascTest {
     public JenkinsConfiguredWithCodeRule j = new JenkinsConfiguredWithCodeRule();
 
     @Test @ConfiguredWithCode("JCascTest/jcasc.yaml")
-    public void read() {
+    public void read() throws Exception {
         StatusPage statusPage = StatusPage.get();
 
         List<StatusPage.Source> srcs = statusPage.getSources();
@@ -54,5 +61,14 @@ public class JCascTest {
         assertEquals("proxy", proxy.getLabel());
         assertEquals(Collections.singletonList("proxypage"), proxy.getPages());
         assertEquals("https://acme.com", proxy.getUrl());
+
+        try (JenkinsRule.WebClient wc = j.createWebClient()) {
+            URL url = new URL(wc.getContextPath() + "configuration-as-code/viewExport");
+            HtmlPage page = wc.getPage(wc.addCrumb(new WebRequest(url, HttpMethod.POST)));
+            String content = page.getBody().getTextContent();
+            MatcherAssert.assertThat(content, containsString("statuspageGating:"));
+            MatcherAssert.assertThat(content, containsString("label: \"upstream\""));
+            MatcherAssert.assertThat(content, containsString("url: \"https://acme.com\""));
+        }
     }
 }
