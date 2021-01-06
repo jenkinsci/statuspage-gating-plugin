@@ -32,8 +32,8 @@ import java.util.logging.Level;
  * @see <a href="https://developer.statuspage.io/#tag/components">Api Docs</a>
  */
 public final class Component extends AbstractObject {
-    @JsonProperty private String description;
-    @JsonProperty private Status status;
+    private final String description;
+    private final Status status;
 
     public enum Status {
         OPERATIONAL,
@@ -55,6 +55,17 @@ public final class Component extends AbstractObject {
         }
     }
 
+    public Component(
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name,
+            @JsonProperty("description") String description,
+            @JsonProperty("status") Status status
+    ) {
+        super(id, name);
+        this.description = description;
+        this.status = status;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -63,7 +74,8 @@ public final class Component extends AbstractObject {
         return status;
     }
 
-    @Override public String toString() {
-        return String.format("Component{id='%s', name='%s', status=%s}", id, name, status);
+    @Override
+    public String toString() {
+        return String.format("Component{id='%s', name='%s', status=%s}", getId(), getName(), status);
     }
 }

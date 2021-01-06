@@ -33,8 +33,10 @@ import org.kohsuke.stapler.DataBoundSetter;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * User configuration of where to pull the {@link Metrics}.
@@ -54,11 +56,13 @@ public final class StatusPage extends GlobalConfiguration {
     }
 
     @DataBoundSetter
-    public StatusPage setSources(@Nonnull List<Source> sources) {
-        if (sources == null || sources.size() == 0) throw new IllegalArgumentException("No sources provided: " + sources);
+    public void setSources(@Nonnull List<Source> sources) {
+        if (sources == null) throw new IllegalArgumentException("No sources provided: " + sources);
 
-        this.sources = Collections.unmodifiableList(new ArrayList<>(sources));
-        return this;
+        this.sources = sources.isEmpty()
+                ? Collections.emptyList()
+                : Collections.unmodifiableList(new ArrayList<>(sources))
+        ;
     }
 
     public static final class Source {
@@ -75,9 +79,16 @@ public final class StatusPage extends GlobalConfiguration {
                 @CheckForNull Secret apiKey
         ) {
             this.label = label;
-            this.pages = Collections.unmodifiableList(new ArrayList<>(pages));
+            // There is a bit of a trick going on here: JCasC provides list of values, but stapler only a single item
+            // with actual values separated by newlines. This is the price for using YAML array and textarea with
+            // newline-separated values. Attempts to get this running with repeatable textbox ware much uglier than this.
+            // https://groups.google.com/g/jenkinsci-dev/c/0NMpZJ1evxg.
+            this.pages = pages.size() != 1
+                    ? Collections.unmodifiableList(new ArrayList<>(pages))
+                    : Arrays.asList(pages.get(0).split("\\R+"))
+            ;
             this.url = url == null ? StatusPageIo.DEFAULT_ROOT_URL : url;
-            this.apiKey = apiKey;
+            this.apiKey = apiKey == null || apiKey.getPlainText().isEmpty() ? null : apiKey;
         }
 
         public @Nonnull String getLabel() {
@@ -94,6 +105,27 @@ public final class StatusPage extends GlobalConfiguration {
 
         public @CheckForNull Secret getApiKey() {
             return apiKey;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("StatusPage.Source{label='%s', pages=%s, url='%s'}", label, pages, url);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Source source = (Source) o;
+            return label.equals(source.label) &&
+                    pages.equals(source.pages) &&
+                    url.equals(source.url) &&
+                    Objects.equals(apiKey, source.apiKey);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(label, pages, url, apiKey);
         }
     }
 }

@@ -30,8 +30,9 @@ import java.util.logging.Logger;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AbstractObject {
     protected static final Logger LOGGER = Logger.getLogger(AbstractObject.class.getName());
-    @JsonProperty protected String id;
-    @JsonProperty protected String name;
+
+    private final String id;
+    private final String name;
 
     public String getId() {
         return id;
@@ -39,5 +40,10 @@ public class AbstractObject {
 
     public String getName() {
         return name;
+    }
+
+    public AbstractObject(@JsonProperty String id, @JsonProperty String name) {
+        this.id = id;
+        this.name = name;
     }
 }

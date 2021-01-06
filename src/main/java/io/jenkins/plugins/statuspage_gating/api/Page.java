@@ -22,10 +22,16 @@
 
 package io.jenkins.plugins.statuspage_gating.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @see <a href="https://developer.statuspage.io/#tag/pages">Api Docs</a>
  */
 public final class Page extends AbstractObject {
+
+    public Page(@JsonProperty("id") String id, @JsonProperty("name") String name) {
+        super(id, name);
+    }
 
     @Override
     public String toString() {

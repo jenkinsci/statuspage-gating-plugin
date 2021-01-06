@@ -30,13 +30,23 @@ import java.util.List;
  * @see <a href="https://developer.statuspage.io/#tag/component-groups">Api Docs</a>
  */
 public final class ComponentGroup extends AbstractObject {
-    @JsonProperty("components") private List<String> componentIds;
+    private List<String> componentIds;
+
+    public ComponentGroup(
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name,
+            @JsonProperty("components") List<String> componentIds
+    ) {
+        super(id, name);
+        this.componentIds = componentIds;
+    }
 
     public List<String> getComponentIds() {
         return componentIds;
     }
 
-    @Override public String toString() {
-        return String.format("ComponentGroup{id='%s', name='%s', componentIds=%s}", id, name, componentIds);
+    @Override
+    public String toString() {
+        return String.format("ComponentGroup{id='%s', name='%s', componentIds=%s}", getId(), getName(), componentIds);
     }
 }

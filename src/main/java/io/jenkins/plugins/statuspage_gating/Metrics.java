@@ -21,7 +21,9 @@
  */
 package io.jenkins.plugins.statuspage_gating;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.Extension;
+import hudson.Functions;
 import hudson.model.PeriodicWork;
 import hudson.model.queue.CauseOfBlockage;
 import io.jenkins.plugins.statuspage_gating.api.Component;
@@ -52,14 +54,35 @@ public enum Metrics {
         return null;
     }
 
-    private void update(@Nonnull Map<StatusPage.Source, SourceSnapshot> metrics) {
+    @VisibleForTesting
+    /*package*/ void update(@Nonnull Map<StatusPage.Source, SourceSnapshot> metrics) {
         synchronized (metricsLock) {
             this.metrics = new HashMap<>(metrics);
-            System.out.println("Updated metrics");
+            System.out.println("Updated metrics: " + toString());
         }
     }
 
-    private static class PageSnapshot {
+    @Override
+    public String toString() {
+        synchronized (metricsLock) {
+            if (metrics == null) return "Metrics: empty";
+            String nl = String.format("%n");
+            StringBuilder sb = new StringBuilder("Metrics: ").append(nl);
+            metrics.forEach((source, sourceSnapshot) -> {
+                sb.append("Source ").append(source.getLabel()).append(':').append(nl);
+                sourceSnapshot.pages.forEach((page, pageSnapshot) -> {
+                    sb.append("\tPage ").append(page.getName()).append(':').append(nl);
+                    for (Component component : pageSnapshot.listComponents) {
+                        sb.append("\t\t Component ").append(component.getName()).append(':').append(component.getStatus()).append(nl);
+                    }
+                });
+            });
+
+            return sb.toString();
+        }
+    }
+
+    static class PageSnapshot {
         private final @Nonnull List<ComponentGroup> listComponentGroups;
         private final @Nonnull List<Component> listComponents;
 
@@ -70,7 +93,7 @@ public enum Metrics {
         }
     }
 
-    private static class SourceSnapshot {
+    /*package*/ static class SourceSnapshot {
         private @CheckForNull Map<Page, PageSnapshot> pages;
 
         public SourceSnapshot(@CheckForNull Map<Page, PageSnapshot> pages) {
@@ -86,7 +109,7 @@ public enum Metrics {
 
         @Override
         public long getRecurrencePeriod() {
-            return MIN;
+            return Functions.getIsUnitTest() ? DAY * 365 : MIN;
         }
 
         // TODO: Consult other sources when one is down/misconfigured
