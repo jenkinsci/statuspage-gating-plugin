@@ -21,6 +21,7 @@
  */
 package io.jenkins.plugins.statuspage_gating;
 
+import groovy.servlet.ServletCategory;
 import hudson.model.FreeStyleProject;
 import hudson.model.JobProperty;
 import hudson.model.Queue;
@@ -34,11 +35,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.jenkins.plugins.gating.ResourceStatus.Category.DEGRADED;
+import static io.jenkins.plugins.gating.ResourceStatus.Category.DOWN;
 import static io.jenkins.plugins.gating.ResourceStatus.Category.UP;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -105,6 +112,40 @@ public class GatingTest {
                 String.format("Some resource are not available: %s[UP] is MAJOR_OUTAGE", RESOURCE_NAME),
                 cob.getShortDescription()
         );
+    }
+
+    @Test
+    public void ui() throws Exception {
+        GatingMatrices gm = GatingMatrices.get();
+        gm.update("statuspage", GatingMatrices.Snapshot.with("statuspage/pageA/componentB/resourceC", MyStatus.OK));
+        gm.update("cachet", GatingMatrices.Snapshot.with("cachet/resource1", MyStatus.DECENT));
+        gm.update("zabbix", GatingMatrices.Snapshot
+                .with("zabbix/host1.exeample.com", MyStatus.BELLY_UP)
+                .and("zabbix/host2.exeample.com", MyStatus.OK)
+        );
+
+        JenkinsRule.WebClient wc = j.createWebClient();
+        String gating = wc.goTo("gating").getBody().getTextContent();
+
+        assertThat(gating, containsString("zabbix/host1.exeample.comBELLY_UP"));
+        assertThat(gating, containsString("zabbix/host2.exeample.comOK"));
+        assertThat(gating, containsString("statuspage/pageA/componentB/resourceCOK"));
+        assertThat(gating, containsString("cachet/resource1DECENT"));
+    }
+
+    public enum MyStatus implements ResourceStatus {
+        OK(UP), DECENT(DEGRADED), BELLY_UP(DOWN);
+
+        private final ResourceStatus.Category category;
+
+        MyStatus(ResourceStatus.Category category) {
+            this.category = category;
+        }
+
+        @Override
+        public @Nonnull Category getCategory() {
+            return category;
+        }
     }
 
     private Queue.Item runJob(
