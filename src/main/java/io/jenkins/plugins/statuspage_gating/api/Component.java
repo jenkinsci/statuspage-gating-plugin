@@ -24,9 +24,12 @@ package io.jenkins.plugins.statuspage_gating.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.jenkins.plugins.gating.ResourceStatus;
 
 import javax.annotation.Nonnull;
 import java.util.logging.Level;
+
+import static io.jenkins.plugins.gating.ResourceStatus.Category.*;
 
 /**
  * @see <a href="https://developer.statuspage.io/#tag/components">Api Docs</a>
@@ -35,13 +38,15 @@ public final class Component extends AbstractObject {
     private final String description;
     private final Status status;
 
-    public enum Status {
-        OPERATIONAL,
-        UNDER_MAINTENANCE,
-        DEGRADED_PERFORMANCE,
-        PARTIAL_OUTAGE,
-        MAJOR_OUTAGE,
-        UNKNOWN;
+    public enum Status implements ResourceStatus {
+        OPERATIONAL(UP),
+        DEGRADED_PERFORMANCE(DEGRADED),
+        PARTIAL_OUTAGE(DEGRADED),
+        UNDER_MAINTENANCE(DOWN),
+        MAJOR_OUTAGE(DOWN),
+        UNKNOWN(Category.UNKNOWN);
+
+        private final Category category;
 
         @JsonCreator // Needed for Jackson to comprehend the "" -> UNKNOWN transition, that cannot be expressed through JsonProperty
         public static @Nonnull Status forValue(String value) {
@@ -52,6 +57,15 @@ public final class Component extends AbstractObject {
                 LOGGER.log(Level.WARNING, "Failed to deserialize Component Status from '" + value + "'", ex);
                 return UNKNOWN;
             }
+        }
+
+        Status(@Nonnull Category category) {
+            this.category = category;
+        }
+
+        @Override
+        public @Nonnull Category getCategory() {
+            return category;
         }
     }
 

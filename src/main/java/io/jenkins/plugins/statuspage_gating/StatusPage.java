@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * User configuration of where to pull the {@link Metrics}.
+ * User configuration of where to pull the Metrics.
  */
 @Extension
 @Symbol("statuspageGating")

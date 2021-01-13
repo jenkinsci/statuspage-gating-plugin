@@ -19,12 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.jenkins.plugins.statuspage_gating;
 
-/**
- * Status based condition to be met in order to run workload.
- *
- * Workload depending on certain services declares a {@link StatusRequirement} describing what it depens on.
- */
-public class StatusRequirement {
-}
+package io.jenkins.plugins.statuspage.StatuspageProperty
+
+import io.jenkins.plugins.statuspage_gating.StatusPage
+
+def f = namespace(lib.FormTagLib)
+StatusPage sp = (StatusPage) instance

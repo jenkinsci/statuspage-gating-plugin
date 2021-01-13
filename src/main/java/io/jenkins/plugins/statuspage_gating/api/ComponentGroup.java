@@ -23,7 +23,11 @@
 package io.jenkins.plugins.statuspage_gating.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.jenkins.plugins.gating.ResourceStatus;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -48,5 +52,19 @@ public final class ComponentGroup extends AbstractObject {
     @Override
     public String toString() {
         return String.format("ComponentGroup{id='%s', name='%s', componentIds=%s}", getId(), getName(), componentIds);
+    }
+
+    /**
+     * Identify {@link ResourceStatus} or most-favorable {@link ResourceStatus.Category} to describe all provided statuses.
+     *
+     * @return Status of all components if all are the same, Status category of the worse one otherwise.
+     */
+    public static ResourceStatus compact(List<Component.Status> groupStatuses) {
+        HashSet<Component.Status> resourceStatuses = new HashSet<>(groupStatuses);
+        if (resourceStatuses.size() == 1) return groupStatuses.get(0);
+
+        groupStatuses.sort(Comparator.comparing(Enum::ordinal));
+
+        return groupStatuses.get(0).getCategory();
     }
 }
