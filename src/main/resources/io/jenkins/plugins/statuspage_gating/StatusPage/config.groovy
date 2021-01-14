@@ -45,7 +45,7 @@ f.section(title: "StatusPage.io Gating") {
                 }
 
                 f.entry(field: "pages", title: "Pages") {
-                    f.textarea(fiel: "pages", value: source?.getPages()?.join("\n"))
+                    f.textarea(value: source?.getPages()?.join("\n"))
                 }
 
                 f.entry() {
