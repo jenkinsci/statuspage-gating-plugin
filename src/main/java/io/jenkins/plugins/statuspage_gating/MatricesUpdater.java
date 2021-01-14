@@ -33,10 +33,13 @@ import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 
 import javax.inject.Inject;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +47,7 @@ import java.util.stream.Collectors;
  */
 @Extension
 public final class MatricesUpdater extends PeriodicWork {
+    private static final Logger LOGGER = Logger.getLogger(MatricesUpdater.class.getName());
 
     @Inject private StatusPage statusPage;
 
@@ -54,13 +58,10 @@ public final class MatricesUpdater extends PeriodicWork {
         return Functions.getIsUnitTest() ? DAY * 365: MIN;
     }
 
-    // TODO: Consult other sources when one is down/misconfigured
-    // TODO: do not wipe past results on failure?
     @Override
-    protected void doRun() throws Exception {
-        Map<String, ResourceStatus> statuses = new HashMap<>();
-
+    protected void doRun() {
         for (StatusPage.Source source : statusPage.getSources()) {
+            Map<String, ResourceStatus> statuses = new HashMap<>();
             try (StatusPageIo spi = new StatusPageIo(source.getUrl(), source.getApiKey())) {
                 for (Page page : spi.listPages()) {
                     List<ComponentGroup> groups = spi.listComponentGroups(page);
@@ -82,6 +83,8 @@ public final class MatricesUpdater extends PeriodicWork {
                         statuses.put(resourceId, ComponentGroup.compact(groupStatuses));
                     }
                 }
+            } catch (Throwable ex) {
+                LOGGER.log(Level.WARNING, "Failed obtaining matrices from source " + source, ex);
             }
             matrices.update(source.getLabel(), new GatingMatrices.Snapshot(statuses));
         }
