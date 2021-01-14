@@ -26,6 +26,7 @@ import hudson.ExtensionList;
 import hudson.util.Secret;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 import jenkins.model.GlobalConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -51,6 +52,10 @@ public final class StatusPage extends GlobalConfiguration {
         return ExtensionList.lookupSingleton(StatusPage.class);
     }
 
+    public StatusPage() {
+        load();
+    }
+
     public List<Source> getSources() {
         return sources;
     }
@@ -63,6 +68,7 @@ public final class StatusPage extends GlobalConfiguration {
                 ? Collections.emptyList()
                 : Collections.unmodifiableList(new ArrayList<>(sources))
         ;
+        save();
     }
 
     public static final class Source {
@@ -78,6 +84,10 @@ public final class StatusPage extends GlobalConfiguration {
                 @CheckForNull String url,
                 @CheckForNull Secret apiKey
         ) {
+            if (label == null || label.isEmpty() || pages == null || pages.isEmpty()) {
+                throw new IllegalArgumentException();
+            }
+
             this.label = label;
             // There is a bit of a trick going on here: JCasC provides list of values, but stapler only a single item
             // with actual values separated by newlines. This is the price for using YAML array and textarea with
@@ -87,7 +97,7 @@ public final class StatusPage extends GlobalConfiguration {
                     ? Collections.unmodifiableList(new ArrayList<>(pages))
                     : Arrays.asList(pages.get(0).split("\\R+"))
             ;
-            this.url = url == null ? StatusPageIo.DEFAULT_ROOT_URL : url;
+            this.url = StringUtils.defaultIfBlank(url, StatusPageIo.DEFAULT_ROOT_URL);
             this.apiKey = apiKey == null || apiKey.getPlainText().isEmpty() ? null : apiKey;
         }
 
