@@ -64,23 +64,11 @@ public final class MatricesUpdater extends PeriodicWork {
             Map<String, ResourceStatus> statuses = new HashMap<>();
             try (StatusPageIo spi = new StatusPageIo(source.getUrl(), source.getApiKey())) {
                 for (Page page : spi.listPages()) {
-                    List<ComponentGroup> groups = spi.listComponentGroups(page);
                     List<Component> components = spi.listComponents(page);
 
-                    Map<String, Component> idToComponent = components.stream().collect(Collectors.toMap(AbstractObject::getId, c -> c));
-
-                    for (ComponentGroup group : groups) {
-                        ArrayList<Component.Status> groupStatuses = new ArrayList<>();
-
-                        for (String cid : group.getComponentIds()) {
-                            Component component = idToComponent.get(cid);
-                            String resourceId = String.format("%s/%s/%s/%s", source.getLabel(), page.getName(), group.getName(), component.getName());
-                            statuses.put(resourceId, component.getStatus());
-
-                            groupStatuses.add(component.getStatus());
-                        }
-                        String resourceId = String.format("%s/%s/%s", source.getLabel(), page.getName(), group.getName());
-                        statuses.put(resourceId, ComponentGroup.compact(groupStatuses));
+                    for (Component component : components) {
+                        String resourceId = String.format("%s/%s/%s", source.getLabel(), page.getName(), component.getName());
+                        statuses.put(resourceId, component.getStatus());
                     }
                 }
             } catch (Throwable ex) {

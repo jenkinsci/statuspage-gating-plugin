@@ -28,7 +28,6 @@ import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.WithoutJenkins;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,7 +37,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
@@ -46,7 +44,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 
-public class UiConfigTest {
+public class UiGlobalConfigTest {
 
     @Rule
     public final JenkinsRule j = new JenkinsRule();
