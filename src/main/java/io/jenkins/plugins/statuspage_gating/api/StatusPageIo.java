@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public final class StatusPageIo implements Closeable {
+public class StatusPageIo implements Closeable {
     public static final String DEFAULT_ROOT_URL = "https://api.statuspage.io/v1/";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -53,22 +53,17 @@ public final class StatusPageIo implements Closeable {
         this.apiKey = apiKey;
     }
 
-    public List<Page> listPages() throws IOException {
+    public @Nonnull List<Page> listPages() throws IOException {
         String url = rootUrl + "pages";
         return fetchResource(client, url, new TypeReference<List<Page>>(){});
     }
 
-    public List<ComponentGroup> listComponentGroups(Page page) throws IOException {
-        String url = rootUrl + "pages/" + page.getId() + "/component-groups";
-        return fetchResource(client, url, new TypeReference<List<ComponentGroup>>(){});
-    }
-
-    public List<Component> listComponents(Page page) throws IOException {
+    public @Nonnull List<Component> listComponents(Page page) throws IOException {
         String url = rootUrl + "pages/" + page.getId() + "/components";
         return fetchResource(client, url, new TypeReference<List<Component>>(){});
     }
 
-    private <T> T fetchResource(CloseableHttpClient client, String url, TypeReference<T> resourceType) throws IOException {
+    private @Nonnull <T> T fetchResource(CloseableHttpClient client, String url, TypeReference<T> resourceType) throws IOException {
         HttpGet request = getRequest(url);
         try (CloseableHttpResponse rsp = client.execute(request)) {
             checkStatusCode(request, rsp);
@@ -81,12 +76,12 @@ public final class StatusPageIo implements Closeable {
         return objectMapper.readValue(stream, resourceType);
     }
 
-    private void checkStatusCode(HttpGet request, CloseableHttpResponse rsp) {
+    private void checkStatusCode(HttpGet request, CloseableHttpResponse rsp) throws IOException {
         int statusCode = rsp.getStatusLine().getStatusCode();
-        if (statusCode != 200) throw new Error("Status code " + statusCode + " accessing " + request.getURI().toString());
+        if (statusCode != 200) throw new IOException("Status code " + statusCode + " accessing " + request.getURI().toString());
     }
 
-    private HttpGet getRequest(String pagesUrl) {
+    private @Nonnull HttpGet getRequest(String pagesUrl) {
         HttpGet httpGet = new HttpGet(pagesUrl);
         if (apiKey != null) {
             httpGet.setHeader("Authorization", "OAuth " + apiKey.getPlainText());

@@ -32,7 +32,7 @@ f.section(title: "StatusPage.io Gating") {
         f.repeatable(var: "instance", name: "sources", items: sp.getSources(), header: "Source", add: "Add Source") {
             StatusPage.Source source = (StatusPage.Source) instance
             table() {
-                f.entry(field: "label", title: "Label", description: "Disambiguate multiple gating sources") {
+                f.entry(field: "label", title: "Label", description: "Disambiguate multiple gating sources. It is required to be unique amongst all of the other sources.") {
                     f.textbox(clazz: "required", value: source?.getLabel())
                 }
 
@@ -44,9 +44,11 @@ f.section(title: "StatusPage.io Gating") {
                     f.textbox(value: source?.getUrl())
                 }
 
-                f.entry(field: "pages", title: "Pages") {
+                f.entry(field: "pages", title: "Pages", description: "List of pages to monitor. Pages not listed here will be ignored.") {
                     f.textarea(value: source?.getPages()?.join("\n"))
                 }
+
+                f.validateButton(title: "Test Connection", progress: "Testing", method: "testConnection", with: "url,apiKey,pages")
 
                 f.entry() {
                     f.repeatableDeleteButton(value: "Delete Source")

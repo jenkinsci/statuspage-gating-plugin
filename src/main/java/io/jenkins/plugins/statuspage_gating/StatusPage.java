@@ -23,13 +23,19 @@ package io.jenkins.plugins.statuspage_gating;
 
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.util.FormValidation;
 import hudson.util.Secret;
+import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 import jenkins.model.GlobalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -38,6 +44,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * User configuration of where to pull the Metrics.
@@ -45,6 +53,9 @@ import java.util.Objects;
 @Extension
 @Symbol("statuspageGating")
 public final class StatusPage extends GlobalConfiguration {
+
+    public static final String TEXT_NO_API_KEY = "No API key provided, make sure desired pages are available without authentication.";
+    public static final String TEXT_NO_PAGES = "No pages configured!";
 
     private List<Source> sources = Collections.emptyList();
 
@@ -71,6 +82,51 @@ public final class StatusPage extends GlobalConfiguration {
         save();
     }
 
+    @RequirePOST
+    @Restricted(NoExternalUse.class)
+    public FormValidation doTestConnection(
+            @QueryParameter String url,
+            @QueryParameter String apiKey,
+            @QueryParameter("pages") String configuredPages
+    ) throws FormValidation {
+        // Push values through Source to set defaults and process data
+        Source source = new Source(
+                UUID.randomUUID().toString(),
+                Collections.singletonList(configuredPages),
+                url,
+                Secret.fromString(apiKey)
+        );
+
+        if (source.pages.isEmpty()) {
+            return FormValidation.error(TEXT_NO_PAGES);
+        }
+
+        try (StatusPageIo spi = ClientFactory.get().create(source.getUrl(), source.getApiKey())) {
+            List<Page> actualPages = spi.listPages();
+            List<String> existingConfiguredPages = actualPages.stream()
+                    .filter(p -> configuredPages.contains(p.getName()))
+                    .map(Page::getName)
+                    .collect(Collectors.toList())
+            ;
+            List<String> missingPages = new ArrayList<>(source.pages);
+            missingPages.removeAll(existingConfiguredPages);
+            if (!missingPages.isEmpty()) {
+                return FormValidation.error("Some configured pages " + source.pages + " do not exist: " + missingPages);
+            }
+
+            StringBuilder sb = new StringBuilder("Connected!");
+            if (source.getApiKey() == null) {
+                sb.append(' ').append(TEXT_NO_API_KEY);
+            }
+            sb.append(" Existing pages: ").append(actualPages.stream().map(Page::getName).collect(Collectors.joining(", ")));
+            return FormValidation.ok(sb.toString());
+        } catch (Exception e) {
+            FormValidation fv = FormValidation.error(e, "Verification failed");
+            fv.addSuppressed(e);
+            throw fv;
+        }
+    }
+
     public static final class Source {
         private final @Nonnull String label;
         private final @Nonnull List<String> pages;
@@ -89,16 +145,25 @@ public final class StatusPage extends GlobalConfiguration {
             }
 
             this.label = label;
-            // There is a bit of a trick going on here: JCasC provides list of values, but stapler only a single item
-            // with actual values separated by newlines. This is the price for using YAML array and textarea with
-            // newline-separated values. Attempts to get this running with repeatable textbox ware much uglier than this.
-            // https://groups.google.com/g/jenkinsci-dev/c/0NMpZJ1evxg.
-            this.pages = pages.size() != 1
-                    ? Collections.unmodifiableList(new ArrayList<>(pages))
-                    : Arrays.asList(pages.get(0).split("\\R+"))
-            ;
+            this.pages = extractPages(pages);
             this.url = StringUtils.defaultIfBlank(url, StatusPageIo.DEFAULT_ROOT_URL);
             this.apiKey = apiKey == null || apiKey.getPlainText().isEmpty() ? null : apiKey;
+        }
+
+        // There is a bit of a trick going on here: JCasC provides list of values, but stapler only a single item
+        // with actual values separated by newlines. This is the price for using YAML array and textarea with
+        // newline-separated values. Attempts to get this running with repeatable textbox ware much uglier than this.
+        // https://groups.google.com/g/jenkinsci-dev/c/0NMpZJ1evxg.
+        private @Nonnull List<String> extractPages(@Nonnull List<String> pages) {
+            if (pages.size() == 1) { // split lines
+                pages = Arrays.asList(pages.get(0).split("\\R+"));
+            }
+
+            return Collections.unmodifiableList(
+                    pages.stream().filter(
+                            s -> !Objects.equals(s, "") && !Objects.equals(s, null)
+                    ).collect(Collectors.toList())
+            );
         }
 
         public @Nonnull String getLabel() {
