@@ -8,12 +8,27 @@
 
 ## Introduction
 
-TODO Describe what your plugin does here
+Fetch uptime matrices from [StatusPage](https://www.atlassian.com/software/statuspage) for
+[Jenkins gating](https://github.com/jenkinsci/gating-core-plugin) to use.
 
 ## Getting started
 
-TODO Tell users how to configure your plugin here, include screenshots, pipeline examples and 
-configuration-as-code examples.
+- Configure connection to StatusPage:
+
+```yaml
+unclassified:
+  statuspageGating:
+    sources:
+      - label: "StatusPage" 
+        apiKey: "foobar" # Encrypt this in production setting. Optional field
+        url: "https://acme.com" # Only when different from https://api.statuspage.io/v1/
+        pages: [ "foo", "bar" ]
+
+```
+(Or manually on global config page)
+
+- See what matrices are available to Jenkins at JENKINS_URL/gating/.
+- configure your builds to [wait for your infra](https://github.com/jenkinsci/gating-core-plugin).
 
 ## Useful links
 
