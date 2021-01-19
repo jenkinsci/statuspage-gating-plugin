@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Fetch uptime matrices from [StatusPage](https://www.atlassian.com/software/statuspage) for
+Fetch uptime matrices from Atlassian [StatusPage](https://www.atlassian.com/software/statuspage) for
 [Jenkins gating](https://github.com/jenkinsci/gating-core-plugin) to use.
 
 ## Getting started
@@ -28,7 +28,7 @@ unclassified:
 (Or manually on global config page)
 
 - See what matrices are available to Jenkins at JENKINS_URL/gating/.
-- configure your builds to [wait for your infra](https://github.com/jenkinsci/gating-core-plugin).
+- Configure your builds to [wait for your infra](https://github.com/jenkinsci/gating-core-plugin).
 
 ## Useful links
 
