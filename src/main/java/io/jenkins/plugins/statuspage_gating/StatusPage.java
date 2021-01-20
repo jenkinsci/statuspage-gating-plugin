@@ -28,6 +28,7 @@ import hudson.util.Secret;
 import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.accmod.Restricted;
@@ -89,6 +90,8 @@ public final class StatusPage extends GlobalConfiguration {
             @QueryParameter String apiKey,
             @QueryParameter("pages") String configuredPages
     ) throws FormValidation {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
         // Push values through Source to set defaults and process data
         Source source = new Source(
                 UUID.randomUUID().toString(),
