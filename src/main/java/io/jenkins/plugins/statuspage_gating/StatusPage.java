@@ -25,6 +25,7 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import io.jenkins.plugins.gating.MatricesProvider;
 import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 import jenkins.model.GlobalConfiguration;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -53,7 +55,7 @@ import java.util.stream.Collectors;
  */
 @Extension
 @Symbol("statuspageGating")
-public final class StatusPage extends GlobalConfiguration {
+public final class StatusPage extends GlobalConfiguration implements MatricesProvider {
 
     public static final String TEXT_NO_API_KEY = "No API key provided, make sure desired pages are available without authentication.";
     public static final String TEXT_NO_PAGES = "No pages configured!";
@@ -128,6 +130,11 @@ public final class StatusPage extends GlobalConfiguration {
             fv.addSuppressed(e);
             throw fv;
         }
+    }
+
+    @Override
+    public @Nonnull Set<String> getLabels() {
+        return sources.stream().map(Source::getLabel).collect(Collectors.toSet());
     }
 
     public static final class Source {

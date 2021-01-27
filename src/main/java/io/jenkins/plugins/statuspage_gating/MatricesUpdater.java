@@ -74,7 +74,7 @@ public final class MatricesUpdater extends PeriodicWork {
             } catch (Throwable ex) {
                 LOGGER.log(Level.WARNING, "Failed obtaining matrices from source " + source, ex);
             }
-            matrices.update(source.getLabel(), new GatingMatrices.Snapshot(statuses));
+            matrices.update(new GatingMatrices.Snapshot(statusPage, source.getLabel(), statuses));
         }
     }
 }
