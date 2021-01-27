@@ -25,6 +25,7 @@ import hudson.Extension;
 import hudson.Functions;
 import hudson.model.PeriodicWork;
 import io.jenkins.plugins.gating.GatingMatrices;
+import io.jenkins.plugins.gating.MatricesSnapshot;
 import io.jenkins.plugins.gating.ResourceStatus;
 import io.jenkins.plugins.statuspage_gating.api.AbstractObject;
 import io.jenkins.plugins.statuspage_gating.api.Component;
@@ -61,20 +62,22 @@ public final class MatricesUpdater extends PeriodicWork {
     @Override
     protected void doRun() {
         for (StatusPage.Source source : statusPage.getSources()) {
-            Map<String, ResourceStatus> statuses = new HashMap<>();
+            Map<String, MatricesSnapshot.Resource> statuses = new HashMap<>();
             try (StatusPageIo spi = new StatusPageIo(source.getUrl(), source.getApiKey())) {
                 for (Page page : spi.listPages()) {
                     List<Component> components = spi.listComponents(page);
 
                     for (Component component : components) {
                         String resourceId = String.format("%s/%s/%s", source.getLabel(), page.getName(), component.getName());
-                        statuses.put(resourceId, component.getStatus());
+                        statuses.put(resourceId, new MatricesSnapshot.Resource(
+                                resourceId, component.getStatus(), component.getDescription()
+                        ));
                     }
                 }
             } catch (Throwable ex) {
                 LOGGER.log(Level.WARNING, "Failed obtaining matrices from source " + source, ex);
             }
-            matrices.update(new GatingMatrices.Snapshot(statusPage, source.getLabel(), statuses));
+            matrices.update(new MatricesSnapshot(statusPage, source.getLabel(), statuses));
         }
     }
 }
