@@ -21,8 +21,8 @@ unclassified:
     sources:
       - label: "StatusPage" 
         apiKey: "foobar" # Encrypt this in production setting. Optional field
-        url: "https://acme.com" # Only when different from https://api.statuspage.io/v1/
-        pages: [ "foo", "bar" ]
+        url: "https://acme.com" # Only needed when different from https://api.statuspage.io/v1/
+        page: "foo"
 
 ```
 (Or manually on global config page)

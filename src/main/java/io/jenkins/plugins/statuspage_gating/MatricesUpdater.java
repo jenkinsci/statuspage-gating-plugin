@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -63,12 +64,15 @@ public final class MatricesUpdater extends PeriodicWork {
     protected void doRun() {
         for (StatusPage.Source source : statusPage.getSources()) {
             Map<String, MatricesSnapshot.Resource> statuses = new HashMap<>();
-            try (StatusPageIo spi = new StatusPageIo(source.getUrl(), source.getApiKey())) {
+            try (StatusPageIo spi = ClientFactory.get().create(source.getUrl(), source.getApiKey())) {
                 for (Page page : spi.listPages()) {
+                    // Only read the page configured
+                    if (!Objects.equals(page.getName(), source.getPage())) continue;
+
                     List<Component> components = spi.listComponents(page);
 
                     for (Component component : components) {
-                        String resourceId = String.format("%s/%s/%s", source.getLabel(), page.getName(), component.getName());
+                        String resourceId = String.format("%s/%s", source.getLabel(), component.getName());
                         statuses.put(resourceId, new MatricesSnapshot.Resource(
                                 resourceId, component.getStatus(), component.getDescription()
                         ));

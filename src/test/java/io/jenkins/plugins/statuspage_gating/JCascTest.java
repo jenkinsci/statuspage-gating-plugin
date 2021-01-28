@@ -32,14 +32,12 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class JCascTest {
     @Rule
@@ -53,13 +51,13 @@ public class JCascTest {
         StatusPage.Source upstream = srcs.get(0);
         assertEquals("foobar", Objects.requireNonNull(upstream.getApiKey()).getPlainText());
         assertEquals("upstream", upstream.getLabel());
-        assertEquals(Arrays.asList("foo", "bar"), upstream.getPages());
+        assertEquals("foo", upstream.getPage());
         assertEquals("https://api.statuspage.io/v1/", upstream.getUrl());
 
         StatusPage.Source proxy = srcs.get(1);
         assertNull(proxy.getApiKey());
         assertEquals("proxy", proxy.getLabel());
-        assertEquals(Collections.singletonList("proxypage"), proxy.getPages());
+        assertEquals("proxypage", proxy.getPage());
         assertEquals("https://acme.com", proxy.getUrl());
 
         try (JenkinsRule.WebClient wc = j.createWebClient()) {

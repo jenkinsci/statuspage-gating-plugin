@@ -3,8 +3,7 @@ unclassified:
     sources:
       - label: "upstream"
         apiKey: "foobar" # Encrypt this in production setting
-        pages: [ "foo", "bar" ]
+        page: "foo"
       - label: "proxy"
         url: "https://acme.com"
-        pages:
-          - proxypage
+        page: proxypage

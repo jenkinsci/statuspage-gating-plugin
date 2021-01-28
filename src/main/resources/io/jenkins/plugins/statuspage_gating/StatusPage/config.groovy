@@ -44,11 +44,11 @@ f.section(title: "StatusPage.io Gating") {
                     f.textbox(value: source?.getUrl())
                 }
 
-                f.entry(field: "pages", title: "Pages", description: "List of pages to monitor. Pages not listed here will be ignored.") {
-                    f.textarea(value: source?.getPages()?.join("\n"))
+                f.entry(field: "page", title: "Page", description: "Page name to monitor.") {
+                    f.textbox(value: source?.getPage())
                 }
 
-                f.validateButton(title: "Test Connection", progress: "Testing", method: "testConnection", with: "url,apiKey,pages")
+                f.validateButton(title: "Test Connection", progress: "Testing", method: "testConnection", with: "url,apiKey,page")
 
                 f.entry() {
                     f.repeatableDeleteButton(value: "Delete Source")

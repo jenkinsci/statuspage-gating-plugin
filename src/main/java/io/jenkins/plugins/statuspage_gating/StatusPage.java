@@ -42,10 +42,10 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -57,8 +57,8 @@ import java.util.stream.Collectors;
 @Symbol("statuspageGating")
 public final class StatusPage extends GlobalConfiguration implements MatricesProvider {
 
-    public static final String TEXT_NO_API_KEY = "No API key provided, make sure desired pages are available without authentication.";
-    public static final String TEXT_NO_PAGES = "No pages configured!";
+    public static final String TEXT_NO_API_KEY = "No API key provided, make sure desired page is available without authentication.";
+    public static final String TEXT_NO_PAGE = "No page configured!";
 
     private List<Source> sources = Collections.emptyList();
 
@@ -90,40 +90,39 @@ public final class StatusPage extends GlobalConfiguration implements MatricesPro
     public FormValidation doTestConnection(
             @QueryParameter String url,
             @QueryParameter String apiKey,
-            @QueryParameter("pages") String configuredPages
+            @QueryParameter("page") String configuredPage
     ) throws FormValidation {
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
+        if (configuredPage.isEmpty()) {
+            return FormValidation.error(TEXT_NO_PAGE);
+        }
 
         // Push values through Source to set defaults and process data
         Source source = new Source(
                 UUID.randomUUID().toString(),
-                Collections.singletonList(configuredPages),
+                configuredPage,
                 url,
                 Secret.fromString(apiKey)
         );
 
-        if (source.pages.isEmpty()) {
-            return FormValidation.error(TEXT_NO_PAGES);
-        }
-
         try (StatusPageIo spi = ClientFactory.get().create(source.getUrl(), source.getApiKey())) {
             List<Page> actualPages = spi.listPages();
-            List<String> existingConfiguredPages = actualPages.stream()
-                    .filter(p -> configuredPages.contains(p.getName()))
-                    .map(Page::getName)
-                    .collect(Collectors.toList())
+            String actualPageNames = actualPages.stream().map(Page::getName).collect(Collectors.joining(", "));
+
+            Optional<Page> exists = actualPages.stream()
+                    .filter(p -> p.getName().equals(configuredPage))
+                    .findFirst()
             ;
-            List<String> missingPages = new ArrayList<>(source.pages);
-            missingPages.removeAll(existingConfiguredPages);
-            if (!missingPages.isEmpty()) {
-                return FormValidation.error("Some configured pages " + source.pages + " do not exist: " + missingPages);
+            if (!exists.isPresent()) {
+                return FormValidation.error("Configured page " + source.page + " does not exist in: " + actualPageNames);
             }
 
             StringBuilder sb = new StringBuilder("Connected!");
             if (source.getApiKey() == null) {
                 sb.append(' ').append(TEXT_NO_API_KEY);
             }
-            sb.append(" Existing pages: ").append(actualPages.stream().map(Page::getName).collect(Collectors.joining(", ")));
+            sb.append(" Existing pages: ").append(actualPageNames);
             return FormValidation.ok(sb.toString());
         } catch (Exception e) {
             FormValidation fv = FormValidation.error(e, "Verification failed");
@@ -139,49 +138,33 @@ public final class StatusPage extends GlobalConfiguration implements MatricesPro
 
     public static final class Source {
         private final @Nonnull String label;
-        private final @Nonnull List<String> pages;
+        private final @Nonnull String page;
         private final @Nonnull String url;
         private final @CheckForNull Secret apiKey;
 
         @DataBoundConstructor
         public Source(
                 @Nonnull String label,
-                @Nonnull List<String> pages,
+                @Nonnull String page,
                 @CheckForNull String url,
                 @CheckForNull Secret apiKey
         ) {
-            if (label == null || label.isEmpty() || pages == null || pages.isEmpty()) {
+            if (label == null || label.isEmpty() || page == null || page.isEmpty()) {
                 throw new IllegalArgumentException();
             }
 
             this.label = label;
-            this.pages = extractPages(pages);
+            this.page = page;
             this.url = StringUtils.defaultIfBlank(url, StatusPageIo.DEFAULT_ROOT_URL);
             this.apiKey = apiKey == null || apiKey.getPlainText().isEmpty() ? null : apiKey;
-        }
-
-        // There is a bit of a trick going on here: JCasC provides list of values, but stapler only a single item
-        // with actual values separated by newlines. This is the price for using YAML array and textarea with
-        // newline-separated values. Attempts to get this running with repeatable textbox ware much uglier than this.
-        // https://groups.google.com/g/jenkinsci-dev/c/0NMpZJ1evxg.
-        private @Nonnull List<String> extractPages(@Nonnull List<String> pages) {
-            if (pages.size() == 1) { // split lines
-                pages = Arrays.asList(pages.get(0).split("\\R+"));
-            }
-
-            return Collections.unmodifiableList(
-                    pages.stream().filter(
-                            s -> !Objects.equals(s, "") && !Objects.equals(s, null)
-                    ).collect(Collectors.toList())
-            );
         }
 
         public @Nonnull String getLabel() {
             return label;
         }
 
-        public @Nonnull List<String> getPages() {
-            return pages;
+        public @Nonnull String getPage() {
+            return page;
         }
 
         public @Nonnull String getUrl() {
@@ -194,7 +177,7 @@ public final class StatusPage extends GlobalConfiguration implements MatricesPro
 
         @Override
         public String toString() {
-            return String.format("StatusPage.Source{label='%s', pages=%s, url='%s'}", label, pages, url);
+            return String.format("StatusPage.Source{label='%s', page=%s, url='%s'}", label, page, url);
         }
 
         @Override
@@ -203,14 +186,14 @@ public final class StatusPage extends GlobalConfiguration implements MatricesPro
             if (o == null || getClass() != o.getClass()) return false;
             Source source = (Source) o;
             return label.equals(source.label) &&
-                    pages.equals(source.pages) &&
+                    page.equals(source.page) &&
                     url.equals(source.url) &&
                     Objects.equals(apiKey, source.apiKey);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(label, pages, url, apiKey);
+            return Objects.hash(label, page, url, apiKey);
         }
     }
 }
