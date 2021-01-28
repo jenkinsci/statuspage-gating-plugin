@@ -158,7 +158,7 @@ public class UiGlobalConfigTest {
         assertEquals("apiKey", apiKeyCaptor.getValue().getPlainText());
 
         // Valid states
-        SharedFixtureClient.use();
+        SharedFixtureClient.reportMetrics();
 
         FormValidation fv = StatusPage.get().doTestConnection("url", "apiKey", "three");
         assertThat(fv.getMessage(), containsString("Configured page three does not exist in: "));

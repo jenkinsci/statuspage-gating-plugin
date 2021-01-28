@@ -54,7 +54,7 @@ class SharedFixtureClient extends StatusPageIo {
         ));
     }
 
-    public static void use() {
+    public static void reportMetrics() {
         ClientFactory.factory = new SharedFixtureClient.InjectingFactory(SHARED_FIXTURE_CLIENT);
     }
 
