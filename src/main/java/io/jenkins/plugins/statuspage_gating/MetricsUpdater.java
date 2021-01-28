@@ -24,46 +24,45 @@ package io.jenkins.plugins.statuspage_gating;
 import hudson.Extension;
 import hudson.Functions;
 import hudson.model.PeriodicWork;
-import io.jenkins.plugins.gating.GatingMatrices;
-import io.jenkins.plugins.gating.MatricesSnapshot;
-import io.jenkins.plugins.gating.ResourceStatus;
-import io.jenkins.plugins.statuspage_gating.api.AbstractObject;
+import io.jenkins.plugins.gating.GatingMetrics;
+import io.jenkins.plugins.gating.MetricsSnapshot;
 import io.jenkins.plugins.statuspage_gating.api.Component;
-import io.jenkins.plugins.statuspage_gating.api.ComponentGroup;
 import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 
 import javax.inject.Inject;
-import java.io.InterruptedIOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Periodically update Metrics from statuspage.
  */
 @Extension
-public final class MatricesUpdater extends PeriodicWork {
-    private static final Logger LOGGER = Logger.getLogger(MatricesUpdater.class.getName());
+public final class MetricsUpdater extends PeriodicWork {
+    private static final Logger LOGGER = Logger.getLogger(MetricsUpdater.class.getName());
 
     @Inject private StatusPage statusPage;
 
-    @Inject private GatingMatrices matrices;
+    @Inject private GatingMetrics metrics;
 
     @Override
     public long getRecurrencePeriod() {
-        return Functions.getIsUnitTest() ? DAY * 365: MIN;
+        return MIN;
+    }
+
+    @Override
+    public long getInitialDelay() {
+        return Functions.getIsUnitTest() ? DAY * 365: 0;
     }
 
     @Override
     protected void doRun() {
         for (StatusPage.Source source : statusPage.getSources()) {
-            Map<String, MatricesSnapshot.Resource> statuses = new HashMap<>();
+            Map<String, MetricsSnapshot.Resource> statuses = new HashMap<>();
             try (StatusPageIo spi = ClientFactory.get().create(source.getUrl(), source.getApiKey())) {
                 for (Page page : spi.listPages()) {
                     // Only read the page configured
@@ -73,15 +72,16 @@ public final class MatricesUpdater extends PeriodicWork {
 
                     for (Component component : components) {
                         String resourceId = String.format("%s/%s", source.getLabel(), component.getName());
-                        statuses.put(resourceId, new MatricesSnapshot.Resource(
+                        statuses.put(resourceId, new MetricsSnapshot.Resource(
                                 resourceId, component.getStatus(), component.getDescription()
                         ));
                     }
                 }
+                metrics.update(new MetricsSnapshot(statusPage, source.getLabel(), statuses));
             } catch (Throwable ex) {
-                LOGGER.log(Level.WARNING, "Failed obtaining matrices from source " + source, ex);
+                LOGGER.log(Level.WARNING, "Failed obtaining metrics from source " + source, ex);
+                metrics.reportError(new MetricsSnapshot.Error(statusPage, source.getLabel(), "Failed obtaining metrics from source", ex));
             }
-            matrices.update(new MatricesSnapshot(statusPage, source.getLabel(), statuses));
         }
     }
 }

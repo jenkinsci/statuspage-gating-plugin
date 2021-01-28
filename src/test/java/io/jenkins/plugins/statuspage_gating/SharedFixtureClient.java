@@ -23,7 +23,7 @@ package io.jenkins.plugins.statuspage_gating;
 
 import com.google.common.collect.ImmutableMap;
 import hudson.util.Secret;
-import io.jenkins.plugins.gating.MatricesSnapshot;
+import io.jenkins.plugins.gating.MetricsSnapshot;
 import io.jenkins.plugins.statuspage_gating.api.Component;
 import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Fake matrices for testing purposes.
+ * Fake metrics for testing purposes.
  */
 class SharedFixtureClient extends StatusPageIo {
     public static final SharedFixtureClient SHARED_FIXTURE_CLIENT = new SharedFixtureClient();
@@ -65,15 +65,15 @@ class SharedFixtureClient extends StatusPageIo {
         ));
     }
 
-    public static ImmutableMap<String, ImmutableMap<String, MatricesSnapshot.Resource>> getReportedMatrices() {
+    public static ImmutableMap<String, ImmutableMap<String, MetricsSnapshot.Resource>> getReportedMetrics() {
         return ImmutableMap.of(
                 "one", ImmutableMap.of(
-                        "one/Component #1", new MatricesSnapshot.Resource("one/Component #1", Component.Status.OPERATIONAL, "Some desc")
+                        "one/Component #1", new MetricsSnapshot.Resource("one/Component #1", Component.Status.OPERATIONAL, "Some desc")
                 ),
                 "Second One", ImmutableMap.of(
-                        "Second One/down-component", new MatricesSnapshot.Resource("Second One/down-component", Component.Status.MAJOR_OUTAGE, "it is down, alright"),
-                        "Second One/some-other-component", new MatricesSnapshot.Resource("Second One/some-other-component", Component.Status.DEGRADED_PERFORMANCE, ""),
-                        "Second One/Squirrel", new MatricesSnapshot.Resource("Second One/Squirrel", Component.Status.MAJOR_OUTAGE, "")
+                        "Second One/down-component", new MetricsSnapshot.Resource("Second One/down-component", Component.Status.MAJOR_OUTAGE, "it is down, alright"),
+                        "Second One/some-other-component", new MetricsSnapshot.Resource("Second One/some-other-component", Component.Status.DEGRADED_PERFORMANCE, ""),
+                        "Second One/Squirrel", new MetricsSnapshot.Resource("Second One/Squirrel", Component.Status.MAJOR_OUTAGE, "")
                 )
         );
     }

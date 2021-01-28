@@ -45,7 +45,7 @@ f.section(title: "StatusPage.io Gating") {
                 }
 
                 f.entry(field: "page", title: "Page", description: "Page name to monitor.") {
-                    f.textbox(value: source?.getPage())
+                    f.textbox(clazz: "required", value: source?.getPage())
                 }
 
                 f.validateButton(title: "Test Connection", progress: "Testing", method: "testConnection", with: "url,apiKey,page")

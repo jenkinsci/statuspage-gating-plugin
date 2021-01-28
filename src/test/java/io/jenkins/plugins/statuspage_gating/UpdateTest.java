@@ -22,8 +22,8 @@
 package io.jenkins.plugins.statuspage_gating;
 
 import hudson.ExtensionList;
-import io.jenkins.plugins.gating.GatingMatrices;
-import io.jenkins.plugins.gating.MatricesSnapshot;
+import io.jenkins.plugins.gating.GatingMetrics;
+import io.jenkins.plugins.gating.MetricsSnapshot;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -41,18 +41,18 @@ public class UpdateTest {
         SharedFixtureClient.use();
         SharedFixtureClient.declareSources();
 
-        MatricesUpdater ma = ExtensionList.lookupSingleton(MatricesUpdater.class);
+        MetricsUpdater ma = ExtensionList.lookupSingleton(MetricsUpdater.class);
         ma.doRun();
 
-        Map<String, MatricesSnapshot> matrices = GatingMatrices.get().getMatrices();
-        MatricesSnapshot one = matrices.get("one");
-        MatricesSnapshot two = matrices.get("Second One");
-        assertEquals(2, matrices.size());
+        Map<String, MetricsSnapshot> metrics = GatingMetrics.get().getMetrics();
+        MetricsSnapshot one = metrics.get("one");
+        MetricsSnapshot two = metrics.get("Second One");
+        assertEquals(2, metrics.size());
 
         assertEquals("one", one.getSourceLabel());
-        assertEquals(SharedFixtureClient.getReportedMatrices().get("one"), one.getStatuses());
+        assertEquals(SharedFixtureClient.getReportedMetrics().get("one"), one.getStatuses());
 
         assertEquals("Second One", two.getSourceLabel());
-        assertEquals(SharedFixtureClient.getReportedMatrices().get("Second One"), two.getStatuses());
+        assertEquals(SharedFixtureClient.getReportedMetrics().get("Second One"), two.getStatuses());
     }
 }

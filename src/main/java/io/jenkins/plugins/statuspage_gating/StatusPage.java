@@ -25,7 +25,7 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import io.jenkins.plugins.gating.MatricesProvider;
+import io.jenkins.plugins.gating.MetricsProvider;
 import io.jenkins.plugins.statuspage_gating.api.Page;
 import io.jenkins.plugins.statuspage_gating.api.StatusPageIo;
 import jenkins.model.GlobalConfiguration;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  */
 @Extension
 @Symbol("statuspageGating")
-public final class StatusPage extends GlobalConfiguration implements MatricesProvider {
+public final class StatusPage extends GlobalConfiguration implements MetricsProvider {
 
     public static final String TEXT_NO_API_KEY = "No API key provided, make sure desired page is available without authentication.";
     public static final String TEXT_NO_PAGE = "No page configured!";
