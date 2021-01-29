@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Fetch uptime matrices from Atlassian [StatusPage](https://www.atlassian.com/software/statuspage) for
+Fetch uptime metrics from Atlassian [StatusPage](https://www.atlassian.com/software/statuspage) for
 [Jenkins gating](https://github.com/jenkinsci/gating-core-plugin) to use.
 
 ## Getting started
@@ -19,7 +19,7 @@ Fetch uptime matrices from Atlassian [StatusPage](https://www.atlassian.com/soft
 unclassified:
   statuspageGating:
     sources:
-      - label: "StatusPage" 
+      - label: "StatusPage"
         apiKey: "foobar" # Encrypt this in production setting. Optional field
         url: "https://acme.com" # Only needed when different from https://api.statuspage.io/v1/
         page: "foo"
@@ -27,8 +27,10 @@ unclassified:
 ```
 (Or manually on global config page)
 
-- See what matrices are available to Jenkins at JENKINS_URL/gating/.
-- Configure your builds to [wait for your infra](https://github.com/jenkinsci/gating-core-plugin).
+- See what metrics are available to Jenkins at JENKINS_URL/gating/.
+  - The resource names will have the form `${CONFIGURED_LABEL}/${REPORTED_RESOURCE_NAME}`.
+  - To collect metrics from multiple pages, you have to declare multiple sources.
+- Configure your builds to [wait for your infra](https://plugins.jenkins.io/gating-core/).
 
 ## Useful links
 
