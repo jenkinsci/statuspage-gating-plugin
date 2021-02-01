@@ -10,7 +10,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>statuspage-gating</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>1.1</version>
     <packaging>hpi</packaging>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <name>StatusPage Gating Plugin</name>
@@ -98,7 +98,7 @@
         <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
         <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
         <url>https://github.com/${gitHubRepo}</url>
-        <tag>${scmTag}</tag>
+        <tag>statuspage-gating-1.1</tag>
     </scm>
 
     <repositories>
