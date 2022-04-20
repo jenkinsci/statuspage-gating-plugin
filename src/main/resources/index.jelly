@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <div>
     Fetch monitoring metrics from Atlassian StatusPage to be used for gating.
 </div>
