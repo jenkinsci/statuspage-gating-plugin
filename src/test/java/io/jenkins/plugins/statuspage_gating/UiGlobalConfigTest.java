@@ -21,7 +21,7 @@
  */
 package io.jenkins.plugins.statuspage_gating;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlPage;
 import com.google.common.collect.ImmutableSet;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
